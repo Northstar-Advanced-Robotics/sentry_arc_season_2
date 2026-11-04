@@ -1,4 +1,3 @@
-[submodule "src/livox_driver"]
-	path = src/livox_driver
+[submodule "src/livox_ros2_driver"]
+	path = src/livox_ros2_driver
 	url = https://github.com/Livox-SDK/livox_ros2_driver.git
-	branch = master
