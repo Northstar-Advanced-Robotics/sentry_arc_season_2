@@ -29,7 +29,7 @@ def build(args) -> None:
     if in_container():
         print("This repository action is meant for outside container use")
     else:
-        runcmd([args.docker_cmd, "build", "-t", args.image_name, "-f", ".devcontainer/Dockerfile", "."])
+        runcmd([args.docker_cmd, "build", "-t", args.image_name, "-f", "Dockerfile", "."])
 
 
 def shell(args) -> None:
