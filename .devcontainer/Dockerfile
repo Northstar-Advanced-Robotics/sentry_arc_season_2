@@ -17,7 +17,6 @@ FROM base as dev
 
 COPY --from=overlay overlay /livox_ros2_driver
 
-# Add packages here
 RUN apt-get update && apt-get install -y --no-install-recommends \ 
         clangd \
         bash-completion \

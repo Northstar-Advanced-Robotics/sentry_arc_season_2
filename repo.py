@@ -17,7 +17,9 @@ docker_run_args: list[str] = [
 colcon_args: list[str] = [
     "--symlink-install",
     "--event-handlers",
-    "console_cohesion+"
+    "console_cohesion+",
+    "--cmake-args",
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 ]
 
 def in_container() -> bool:
@@ -60,7 +62,7 @@ def find_default_docker() -> str:
 
 def add_docker_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--docker-cmd", type=str, default=find_default_docker(), help="Docker (or Podman) binary")
-    parser.add_argument("--image-name", type=str, default="northstar/sentry:intro", help="Container image name")
+    parser.add_argument("--image-name", type=str, default="northstar/sentry:arc2", help="Container image name")
 
 
 def main() -> None:
