@@ -6,6 +6,8 @@ import shutil
 runcmd = subprocess.run
 
 repo_root = os.path.dirname(os.path.abspath(__file__))
+container_name = 'sentry-dev'
+
 docker_run_args: list[str] = [
     "-it",
     "--rm",
@@ -18,8 +20,10 @@ colcon_args: list[str] = [
     "--symlink-install",
     "--event-handlers",
     "console_cohesion+",
-    "--cmake-args",
-    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+    "--mixin",
+    "compile-commands",
+    "clang",
+    "ninja",
 ]
 
 def in_container() -> bool:
@@ -29,7 +33,11 @@ def build(args) -> None:
     if in_container():
         print("This repository action is meant for outside container use")
     else:
-        runcmd([args.docker_cmd, "build", "-t", args.image_name, "-f", "Dockerfile", "."])
+        cmd = [args.docker_cmd, "build"]
+        if args.docker_cmd == "docker":
+            cmd.extend(["--progress=plain"])
+        cmd.extend(['-t', args.image_name, '-f', 'Dockerfile', '.'])
+        runcmd(cmd)
 
 
 def shell(args) -> None:
@@ -74,7 +82,7 @@ def main() -> None:
 
     shell_parser = subparsers.add_parser("shell", help="Enter a shell inside the container")
     add_docker_args(shell_parser)
-    shell_parser.add_argument("--container-name", type=str, default="sentry-intro-container", help="Specify a package to build")
+    shell_parser.add_argument("--container-name", type=str, default=container_name, help="Container name")
 
     compile_parser = subparsers.add_parser("compile", help="Compile the ROS 2 workspace")
     compile_parser.add_argument("--package", type=str, default=None, help="Specify a package to build")
