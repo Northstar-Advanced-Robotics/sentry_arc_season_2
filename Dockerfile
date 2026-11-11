@@ -25,11 +25,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 FROM base as dev 
 
 COPY --from=overlay /overlay/install /livox_ros_driver2/install
+COPY --from=overlay /overlay/src/livox_ros_driver2/package.xml /livox_ros_driver2/package.xml
 COPY --from=overlay /usr/local /usr/local
 COPY --parents src/**/package.xml /ws/
 
-RUN echo 'source /livox_ros_driver2/install/setup.bash' >> /root/.bashrc \
-&&  echo 'source /opt/ros/${ROS_DISTRO}/setup.bash' >> /root/.bashrc \
+RUN echo 'source /opt/ros/${ROS_DISTRO}/setup.bash' >> /root/.bashrc \
+&&  echo 'source /livox_ros_driver2/install/setup.bash' >> /root/.bashrc \
 &&  echo 'source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash' >> /root/.bashrc
 
 RUN apt-get update && apt-get install -y --no-install-recommends \ 
@@ -37,6 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ninja-build \
         bash-completion \
         clang && \
+    rosdep install --from-paths /livox_ros_driver2 -y --ignore-src --dependency-types exec && \
     rosdep install --from-paths /ws --ignore-src -r -y && \
     rm -rf /var/lib/apt/lists/*
 
