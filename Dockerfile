@@ -4,11 +4,11 @@ FROM docker.io/ros:${ROS_DISTRO}-ros-base as base
 FROM base as overlay
 
 RUN git clone https://github.com/Livox-SDK/Livox-SDK2.git \
-&& cd ./Livox-SDK2/ \
-&& mkdir build \
-&& cd build \
-&& cmake .. && make -j \
-&& make install
+&&  cd ./Livox-SDK2/ \
+&&  mkdir build \
+&&  cd build \
+&&  cmake .. && make -j \
+&&  make install
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         symlinks \
