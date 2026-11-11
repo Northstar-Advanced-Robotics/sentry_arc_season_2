@@ -47,7 +47,14 @@ def shell(args) -> None:
         runcmd([args.docker_cmd, "exec", "-it", args.container_name, "bash"])
     else:
         build(args)
-        runcmd([args.docker_cmd, "run", *docker_run_args, f"--name={args.container_name}", args.image_name, "bash"])
+        cmd = [args.docker_cmd, "run", *docker_run_args, f"--name={args.container_name}"]
+        if args.display:
+            cmd.extend([
+                       '--privileged', '--net=host',
+                       '--ipc=host', '-e=DISPLAY',
+                       '-v=/tmp/.X11-unix:/tmp/.X11-unix:rw'])
+        cmd.extend([args.image_name, 'bash'])
+        runcmd(cmd)
 
 
 def compile(args) -> None:
@@ -83,6 +90,7 @@ def main() -> None:
     shell_parser = subparsers.add_parser("shell", help="Enter a shell inside the container")
     add_docker_args(shell_parser)
     shell_parser.add_argument("--container-name", type=str, default=container_name, help="Container name")
+    shell_parser.add_argument("--display", action="store_true", help="Forward display")
 
     compile_parser = subparsers.add_parser("compile", help="Compile the ROS 2 workspace")
     compile_parser.add_argument("--package", type=str, default=None, help="Specify a package to build")

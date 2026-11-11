@@ -10,8 +10,10 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>rclcpp</depend>
-  <depend>geometry_msgs</depend>
   <depend>webots_ros2_driver</depend>
+  <depend>webots_ros2</depend>
+  <depend>python3-pil</depend>
+  <depend>geometry_msgs</depend>
   <depend>pluginlib</depend>
 
   <test_depend>ament_lint_auto</test_depend>
