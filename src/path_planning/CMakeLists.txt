@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.13) 
 project(path_planning CXX)
  
-find_package(Eigen3 REQUIRED)
-
 find_package(rclcpp REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
@@ -24,7 +22,6 @@ PRIVATE
     geometry_msgs::geometry_msgs
     tf2::tf2
     tf2_geometry_msgs::tf2_geometry_msgs
-    Eigen3::Eigen
 )
 target_include_directories(path_planning_node
 PRIVATE
