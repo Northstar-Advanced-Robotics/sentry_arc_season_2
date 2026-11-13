@@ -2,7 +2,6 @@
 
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/floors/protos/CircleArena.proto"
 
 WorldInfo {
 }
@@ -15,7 +14,28 @@ TexturedBackground {
 }
 TexturedBackgroundLight {
 }
-CircleArena {
+Solid {
+  translation 0 0 0
+  rotation 1 0 0 0
+  children [
+    Transform {
+      scale 1 1 1   # Use 1 1 1 if exported in meters instead of mm
+      children [
+        CadShape {
+          url [ "2026_ARC_3v3.obj" ]
+        }
+      ]
+    }
+  ]
+  name "competition_field"
+  boundingObject Transform {
+    scale 1 1 1     # Must match visual scale
+    children [
+      Mesh {
+        url [ "2026_ARC_3v3.obj" ]
+      }
+    ]
+  }
 }
 Robot {
   children [
@@ -82,8 +102,8 @@ Robot {
         Shape {
           appearance PBRAppearance {
             baseColor 0 0 1
-            roughness 1
-            metalness 0
+            roughness 0
+            metalness 1
           }
           geometry DEF BODY Cylinder {
             height 0.08
@@ -91,6 +111,39 @@ Robot {
           }
         }
       ]
+    }
+    Lidar {
+      translation 0 0 0.095          # Centered on top deck (body top is at z = 0.0815)
+      rotation 0 0 1 0               # Aligned straight forward (+X)
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0.15 0.15 0.15
+            roughness 0.4
+            metalness 0.6
+          }
+          geometry Cylinder {
+            height 0.027             # Sits flush on z = 0.0815 (0.095 - 0.027/2)
+            radius 0.03              # Scaled to fit the 0.045 m robot body; cleared by near 0.05
+          }
+        }
+      ]
+      name "lidar"
+      tiltAngle 0.0              # ~22.5 deg upward pitch (centers -7° to +52° VFOV)
+      horizontalResolution 500       # 500 pts/layer * 40 layers = 20,000 pts/scan
+      fieldOfView 6.283185           # 360 deg horizontal FOV (2*pi)
+      verticalFieldOfView 1.815142   # 59 deg vertical FOV (-7° to +52°)
+      numberOfLayers 70              # Matches Mid-360's 40-line equivalent density
+      near 0.05                      # Clears the 0.03 m sensor housing without hurting depth precision
+      minRange 0.1                   # 10 cm close-proximity blind zone
+      maxRange 70.0                  # 70 m (@ 80% reflectivity); use 40.0 for 10% reflectivity
+      type "fixed"                   # Single-step 360° capture (avoids distortion)
+      projection "cylindrical"       # Required for FOV > pi
+      noise 0.000286                 # 0.02 m / 70.0 m -> 2 cm (1σ) Gaussian range noise
+      resolution -1.0                # Continuous depth resolution
+      defaultFrequency 10            # 10 Hz typical frame rate (200,000 pts/s total)
+      minFrequency 10
+      maxFrequency 10
     }
     DistanceSensor {
       translation 0.042 0.02 0.063
@@ -102,8 +155,8 @@ Robot {
             Shape {
               appearance PBRAppearance {
                 baseColor 1 1 0
-                roughness 1
-                metalness 0
+                roughness 0
+                metalness 1
               }
               geometry Cylinder {
                 height 0.004
