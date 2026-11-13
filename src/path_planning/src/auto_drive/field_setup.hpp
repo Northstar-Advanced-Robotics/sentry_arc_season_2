@@ -1,7 +1,8 @@
 #ifndef FIELD_SETUP_HPP
 #define FIELD_SETUP_HPP
 
-#include <eigen3/Eigen/Dense>
+#include <vector>
+#include "vector2.hpp"
 
 namespace src::AutoPathing
 {
@@ -18,13 +19,13 @@ public:
 
     // in meters, defined as pairs of bottom-left and top-right corners with the origin as the
     // center of the field
-    const std::vector<std::pair<Eigen::Vector2d, Eigen::Vector2d>> obstacleBounds;
+    const std::vector<std::pair<vector2<float>, vector2<float>>> obstacleBounds;
 
     FieldSetup(
         float fieldRealSizeX,
         float fieldRealSizeY,
         float nodeSizeMeters,
-        std::vector<std::pair<Eigen::Vector2d, Eigen::Vector2d>> obstacleBounds)
+        std::vector<std::pair<vector2<float>, vector2<float>>> obstacleBounds)
         : fieldRealSizeX(fieldRealSizeX),
           fieldRealSizeY(fieldRealSizeY),
           nodeSize(nodeSizeMeters),

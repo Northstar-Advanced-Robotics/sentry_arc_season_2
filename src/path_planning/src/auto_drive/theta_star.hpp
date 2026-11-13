@@ -3,14 +3,14 @@
 
 #include <algorithm>
 #include <cmath>
+#include <chrono>
 #include <cstddef>
 #include <cstdlib>  // For abs
 #include <queue>
 #include <unordered_map>
 #include <vector>
 
-#include <eigen3/Eigen/Dense>
-
+#include "vector2.hpp"
 #include "field_setup.hpp"
 #include "tracked_robot.hpp"
 
@@ -19,16 +19,16 @@ namespace src::AutoPathing
 
 struct Vector2iHash
 {
-    std::size_t operator()(const Eigen::Vector2i& v) const
+    std::size_t operator()(const vector2<int>& v) const
     {
         std::size_t seed = 0;
-        seed ^= std::hash<int>{}(v.x()) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<int>{}(v.y()) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= std::hash<int>{}(v.x + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+        seed ^= std::hash<int>{}(v.y + 0x9e3779b9 + (seed << 6) + (seed >> 2));
         return seed;
     }
 };
 
-using NodePair = std::pair<float, Eigen::Vector2i>;
+using NodePair = std::pair<float, vector2<int>>;
 
 struct CompareNode
 {
@@ -99,14 +99,12 @@ public:
         workingGridPtr[x + y * fieldSetup.gridSizeX] = newValue;
     }
 
-    bool isNodeValidAndEmpty(Eigen::Vector2i point)
+    bool isNodeValidAndEmpty(vector2<int> point)
     {
-        if (point.x() < 0 || point.x() >= fieldSetup.gridSizeX || point.y() < 0 ||
-            point.y() >= fieldSetup.gridSizeY)
-        {
+        if (point.x < 0 || point.x >= fieldSetup.gridSizeX || point.y < 0 || point.y >= fieldSetup.gridSizeY) {
             return false;
         }
-        return (getWorkingGrid(point.x(), point.y()) == std::byte{0});
+        return (getWorkingGrid(point.x, point.y) == std::byte{0});
     }
 
     void updateDynamicObstacles()
@@ -131,12 +129,12 @@ public:
         }
     }
 
-    std::vector<Eigen::Vector2i> FindPath(Eigen::Vector2i start, Eigen::Vector2i end)
+    std::vector<vector2<int>> FindPath(vector2<int> start, vector2<int> end)
     {
         std::priority_queue<NodePair, std::vector<NodePair>, CompareNode> frontier;
 
-        std::unordered_map<Eigen::Vector2i, Eigen::Vector2i, Vector2iHash> cameFrom;
-        std::unordered_map<Eigen::Vector2i, float, Vector2iHash> costSoFar;  // g_score
+        std::unordered_map<vector2<int>, vector2<int>, Vector2iHash> cameFrom;
+        std::unordered_map<vector2<int>, float, Vector2iHash> costSoFar;  // g_score
 
         frontier.push({0.0f, start});
 
@@ -147,19 +145,19 @@ public:
         {
             NodePair top = frontier.top();
             frontier.pop();
-            Eigen::Vector2i current = top.second;
+            vector2<int> current = top.second;
 
             if (current == end)
             {
                 break;
             }
 
-            Eigen::Vector2i dirs[] =
+            vector2<int> dirs[] =
                 {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
 
             for (const auto& dir : dirs)
             {
-                Eigen::Vector2i neighbor = current + dir;
+                vector2<int> neighbor = current + dir;
 
                 // Skip if out of bounds or inside a Hard Wall (1)
                 if (!isNodeValidAndEmpty(neighbor))
@@ -173,7 +171,7 @@ public:
                 bool loS = false;
                 if (cameFrom.find(current) != cameFrom.end())
                 {
-                    Eigen::Vector2i parent = cameFrom[current];
+                    vector2<int> parent = cameFrom[current];
                     // Don't check LOS if parent is current (start node)
                     if (parent != current)
                     {
@@ -181,7 +179,7 @@ public:
                         {
                             // Path 1: Grandparent -> Neighbor (Straight Line Shortcut)
                             float newCost =
-                                costSoFar[parent] + (parent - neighbor).cast<float>().norm();
+                                costSoFar[parent] + parent.distance_to(neighbor);
                             if (costSoFar.find(neighbor) == costSoFar.end() ||
                                 newCost < costSoFar[neighbor])
                             {
@@ -198,7 +196,7 @@ public:
                 // Path 2: Current -> Neighbor (Standard A* behavior if LOS fails)
                 if (!loS)
                 {
-                    float newCost = costSoFar[current] + (current - neighbor).cast<float>().norm();
+                    float newCost = costSoFar[current] + current.distance_to(neighbor);
                     if (costSoFar.find(neighbor) == costSoFar.end() ||
                         newCost < costSoFar[neighbor])
                     {
@@ -211,14 +209,14 @@ public:
             }
         }
 
-        std::vector<Eigen::Vector2i> path;
+        std::vector<vector2<int>> path;
 
         if (cameFrom.find(end) == cameFrom.end())
         {
             return path;
         }
 
-        Eigen::Vector2i cur = end;
+        vector2<int> cur = end;
         while (cur != start)
         {
             path.push_back(cur);
@@ -231,28 +229,28 @@ public:
         return path;
     }
 
-    Eigen::Vector2i ConvertWorldToGrid(Eigen::Vector2f worldPos)
+    vector2<int> ConvertWorldToGrid(vector2<float> worldPos)
     {
-        return Eigen::Vector2i((int)(((worldPos.x() + fieldSetup.fieldRealSizeX / 2.0f) / fieldSetup.fieldRealSizeX) * fieldSetup.gridSizeX), (int)(((worldPos.y() + fieldSetup.fieldRealSizeY / 2.0f) / fieldSetup.fieldRealSizeY) * fieldSetup.gridSizeY));
+        return vector2<int>((int)(((worldPos.x + fieldSetup.fieldRealSizeX / 2.0f) / fieldSetup.fieldRealSizeX) * fieldSetup.gridSizeX), (int)(((worldPos.y + fieldSetup.fieldRealSizeY / 2.0f) / fieldSetup.fieldRealSizeY) * fieldSetup.gridSizeY));
     }
 
-    Eigen::Vector2f ConvertGridToWorld(Eigen::Vector2f gridPos)
+    vector2<float> ConvertGridToWorld(vector2<float> gridPos)
     {
-        return Eigen::Vector2f(
-            (gridPos.x() / (float)fieldSetup.gridSizeX) * fieldSetup.fieldRealSizeX -
+        return vector2<float>(
+            (gridPos.x / (float)fieldSetup.gridSizeX) * fieldSetup.fieldRealSizeX -
                 fieldSetup.fieldRealSizeX / 2.0f,
-            (gridPos.y() / (float)fieldSetup.gridSizeY) * fieldSetup.fieldRealSizeY -
+            (gridPos.y / (float)fieldSetup.gridSizeY) * fieldSetup.fieldRealSizeY -
                 fieldSetup.fieldRealSizeY / 2.0f);
     }
 
 private:
     // Bresenham's Line Algorithm for Line of Sight
-    bool lineOfSight(Eigen::Vector2i s, Eigen::Vector2i s_prime)
+    bool lineOfSight(vector2<int> s, vector2<int> s_prime)
     {
-        int x0 = s.x();
-        int y0 = s.y();
-        int x1 = s_prime.x();
-        int y1 = s_prime.y();
+        int x0 = s.x;
+        int y0 = s.y;
+        int x1 = s_prime.x;
+        int y1 = s_prime.y;
 
         int dx = std::abs(x1 - x0);
         int dy = std::abs(y1 - y0);
@@ -285,21 +283,19 @@ private:
         return true;
     }
 
-    float EuclideanDistance(int x1, int y1, int x2, int y2)
-    {
+    float EuclideanDistance(int x1, int y1, int x2, int y2) {
         return std::sqrt(std::pow(x1 - x2, 2) + std::pow(y1 - y2, 2));
     }
 
-    float heuristic(Eigen::Vector2i current, Eigen::Vector2i goal)
-    {
-        return (current - goal).cast<float>().norm();
+    float heuristic(vector2<int> current, vector2<int> goal) {
+        return current.distance_to(goal);
     }
 
-    void DrawCircle(Eigen::Vector2i pos, int nodeRadius, std::byte* grid)
+    void DrawCircle(vector2<int> pos, int nodeRadius, std::byte* grid)
     {
         int r2 = nodeRadius * nodeRadius;
-        int posX = pos.x();
-        int posY = pos.y();
+        int posX = pos.x;
+        int posY = pos.y;
 
         for (int x = -nodeRadius; x <= nodeRadius; x++)
         {
@@ -324,14 +320,14 @@ private:
     {
         for (const auto& bound : fieldSetup.obstacleBounds)
         {
-            Eigen::Vector2i minGrid =
-                ConvertWorldToGrid(Eigen::Vector2f(bound.first.x(), bound.first.y()));
-            Eigen::Vector2i maxGrid =
-                ConvertWorldToGrid(Eigen::Vector2f(bound.second.x(), bound.second.y()));
+            vector2<int> minGrid =
+                ConvertWorldToGrid(vector2<float>(bound.first.x, bound.first.y));
+            vector2<int> maxGrid =
+                ConvertWorldToGrid(vector2<float>(bound.second.x, bound.second.y));
 
-            for (int i = minGrid.x(); i <= maxGrid.x(); i++)
+            for (int i = minGrid.x; i <= maxGrid.x; i++)
             {
-                for (int j = minGrid.y(); j <= maxGrid.y(); j++)
+                for (int j = minGrid.y; j <= maxGrid.y; j++)
                 {
                     setObstacleGrid(i, j, std::byte{1});
                 }

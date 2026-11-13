@@ -1,7 +1,7 @@
 #ifndef TRACKED_ROBOT_HPP
 #define TRACKED_ROBOT_HPP
 
-#include <eigen3/Eigen/Dense>
+#include "vector2.hpp"
 
 namespace src::AutoPathing
 {
@@ -9,10 +9,10 @@ namespace src::AutoPathing
 class TrackedRobot
 {
 public:
-    Eigen::Vector2i position;
+    vector2<int> position;
     const int nodeRadius;
 
-    TrackedRobot(Eigen::Vector2i pos, int radius) : position(pos), nodeRadius(radius) {}
+    TrackedRobot(vector2<int> pos, int radius) : position(pos), nodeRadius(radius) {}
 
     inline bool isExpired(int64_t currentTimeMS) const
     {

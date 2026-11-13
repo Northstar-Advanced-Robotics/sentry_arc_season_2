@@ -1,13 +1,13 @@
 #include <vector>
 
-#include <eigen3/Eigen/Dense>
+#include "vector2.hpp"
 
 class PathOutline
 {
 public:
     float MAX_POS_ERROR = 0.18f;
 
-    PathOutline(std::vector<Eigen::Vector2f> outline, bool repeats)
+    PathOutline(std::vector<vector2<float>> outline, bool repeats)
         : outline(outline),
           repeats(repeats)
     {
@@ -15,10 +15,10 @@ public:
 
     PathOutline() : outline({}), repeats(false) {}
 
-    Eigen::Vector2f evaluatePath(Eigen::Vector2f currentRobotWorldPos)
+    vector2<float> evaluatePath(vector2<float> currentRobotWorldPos)
     {
-        Eigen::Vector2f goal = outline[pathIndex];
-        float distanceToGoal = (goal - currentRobotWorldPos).norm();
+        vector2<float> goal = outline[pathIndex];
+        float distanceToGoal = currentRobotWorldPos.distance_to(goal);
 
         if (distanceToGoal <= MAX_POS_ERROR)
         {
@@ -57,5 +57,5 @@ private:
     bool repeats = false;
     bool pathFinished = false;
 
-    std::vector<Eigen::Vector2f> outline;
+    std::vector<vector2<float>> outline;
 };
