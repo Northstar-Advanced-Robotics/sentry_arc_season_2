@@ -19,8 +19,10 @@ private:
       cmd_vel_subscription;
   geometry_msgs::msg::Twist cmd_vel_msg;
 
-  WbDeviceTag right_motor;
-  WbDeviceTag left_motor;
+  WbDeviceTag wheel0;
+  WbDeviceTag wheel1;
+  WbDeviceTag wheel2;
+  WbDeviceTag wheel3;
 };
 
 #endif // SENTRY_DRIVER_HPP

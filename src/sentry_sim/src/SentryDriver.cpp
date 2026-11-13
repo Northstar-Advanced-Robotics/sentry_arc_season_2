@@ -13,15 +13,20 @@ void SentryDriver::init(
     webots_ros2_driver::WebotsNode *node,
     std::unordered_map<std::string, std::string> &parameters) {
 
-  right_motor = wb_robot_get_device("right wheel motor");
-  left_motor = wb_robot_get_device("left wheel motor");
+  wheel0 = wb_robot_get_device("wheel0");
+  wheel1 = wb_robot_get_device("wheel1");
+  wheel2 = wb_robot_get_device("wheel2");
+  wheel3 = wb_robot_get_device("wheel3");
 
-  wb_motor_set_position(right_motor, INFINITY);
-  wb_motor_set_velocity(right_motor, 0);
-
-  wb_motor_set_position(left_motor, INFINITY);
-  wb_motor_set_velocity(left_motor, 0);
-
+  const auto setup = [](WbDeviceTag wheel) -> void {
+      wb_motor_set_position(wheel, INFINITY);
+      wb_motor_set_velocity(wheel, 0);
+  };
+  setup(wheel0);
+  setup(wheel1);
+  setup(wheel2);
+  setup(wheel3);
+;      
   cmd_vel_subscription = node->create_subscription<geometry_msgs::msg::Twist>(
       "/cmd_vel", rclcpp::SensorDataQoS().reliable(),
       [this](const geometry_msgs::msg::Twist &msg) {
@@ -41,8 +46,8 @@ void SentryDriver::step() {
       (forward_speed + angular_speed * HALF_DISTANCE_BETWEEN_WHEELS) /
       WHEEL_RADIUS;
 
-  wb_motor_set_velocity(left_motor, command_motor_left);
-  wb_motor_set_velocity(right_motor, command_motor_right);
+  wb_motor_set_velocity(wheel0, command_motor_left);
+  wb_motor_set_velocity(wheel3, command_motor_right);
 }
 
 #include "pluginlib/class_list_macros.hpp"

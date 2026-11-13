@@ -4,6 +4,13 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
 
 WorldInfo {
+  contactProperties [
+    ContactProperties {
+      material1 "omni_wheel"
+      coulombFriction [ 2, 0 ]
+      bounce 0
+    }
+  ]
 }
 Viewpoint {
   orientation -0.33185733874619844 -0.09874274160469809 0.9381474178937331 3.686018050088086
@@ -39,21 +46,24 @@ Solid {
 }
 Robot {
   children [
+    # Wheel 0: Front-Left (+45 deg)
     HingeJoint {
       jointParameters HingeJointParameters {
-        axis 0 1 0
-        anchor 0 0 0.025
+        axis 0.7071068 0.7071068 0
+        anchor 0.0318198 0.0318198 0.025
       }
       device [
         RotationalMotor {
-          name "left wheel motor"
+          name "wheel0_motor"
         }
       ]
       endPoint Solid {
-        translation 0 0.045 0.025
+        translation 0.0318198 0.0318198 0.025
+        rotation 0 0 1 -0.7853982
+        contactMaterial "omni_wheel"
         children [
-          DEF WHEEL Transform {
-            rotation 1 0 0 1.5707996938995747
+          DEF OMNI_WHEEL Transform {
+            rotation 1 0 0 1.5707963
             children [
               Shape {
                 appearance PBRAppearance {
@@ -69,29 +79,80 @@ Robot {
             ]
           }
         ]
-        name "left wheel"
-        boundingObject USE WHEEL
+        name "wheel0"
+        boundingObject USE OMNI_WHEEL
         physics Physics {
         }
       }
     }
+    # Wheel 1: Back-Left (+135 deg)
     HingeJoint {
       jointParameters HingeJointParameters {
-        axis 0 1 0
-        anchor 0 0 0.025
+        axis -0.7071068 0.7071068 0
+        anchor -0.0318198 0.0318198 0.025
       }
       device [
         RotationalMotor {
-          name "right wheel motor"
+          name "wheel1_motor"
         }
       ]
       endPoint Solid {
-        translation 0 -0.045 0.025
+        translation -0.0318198 0.0318198 0.025
+        rotation 0 0 1 0.7853982
+        contactMaterial "omni_wheel"
         children [
-          USE WHEEL
+          USE OMNI_WHEEL
         ]
-        name "right wheel"
-        boundingObject USE WHEEL
+        name "wheel1"
+        boundingObject USE OMNI_WHEEL
+        physics Physics {
+        }
+      }
+    }
+    # Wheel 2: Back-Right (-135 deg)
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        axis -0.7071068 -0.7071068 0
+        anchor -0.0318198 -0.0318198 0.025
+      }
+      device [
+        RotationalMotor {
+          name "wheel2_motor"
+        }
+      ]
+      endPoint Solid {
+        translation -0.0318198 -0.0318198 0.025
+        rotation 0 0 1 2.3561945
+        contactMaterial "omni_wheel"
+        children [
+          USE OMNI_WHEEL
+        ]
+        name "wheel2"
+        boundingObject USE OMNI_WHEEL
+        physics Physics {
+        }
+      }
+    }
+    # Wheel 3: Front-Right (-45 deg)
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        axis 0.7071068 -0.7071068 0
+        anchor 0.0318198 -0.0318198 0.025
+      }
+      device [
+        RotationalMotor {
+          name "wheel3_motor"
+        }
+      ]
+      endPoint Solid {
+        translation 0.0318198 -0.0318198 0.025
+        rotation 0 0 1 -2.3561945
+        contactMaterial "omni_wheel"
+        children [
+          USE OMNI_WHEEL
+        ]
+        name "wheel3"
+        boundingObject USE OMNI_WHEEL
         physics Physics {
         }
       }
@@ -129,7 +190,7 @@ Robot {
         }
       ]
       name "lidar"
-      tiltAngle 0.0              # ~22.5 deg upward pitch (centers -7° to +52° VFOV)
+      tiltAngle 0.0                  # ~22.5 deg upward pitch (centers -7° to +52° VFOV)
       horizontalResolution 500       # 500 pts/layer * 40 layers = 20,000 pts/scan
       fieldOfView 6.283185           # 360 deg horizontal FOV (2*pi)
       verticalFieldOfView 1.815142   # 59 deg vertical FOV (-7° to +52°)
