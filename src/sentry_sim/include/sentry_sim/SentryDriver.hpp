@@ -14,15 +14,17 @@ public:
   void init(webots_ros2_driver::WebotsNode *node,
             std::unordered_map<std::string, std::string> &parameters) override;
 
+  void driveBasedOnHeading(float forward, float sideways, float rotational, float heading);
+
 private:
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr
       cmd_vel_subscription;
   geometry_msgs::msg::Twist cmd_vel_msg;
 
-  WbDeviceTag wheel0;
-  WbDeviceTag wheel1;
-  WbDeviceTag wheel2;
-  WbDeviceTag wheel3;
+  WbDeviceTag wheel_fl;
+  WbDeviceTag wheel_bl;
+  WbDeviceTag wheel_br;
+  WbDeviceTag wheel_fr;
 };
 
 #endif // SENTRY_DRIVER_HPP
