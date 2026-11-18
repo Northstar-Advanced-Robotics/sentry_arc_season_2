@@ -42,7 +42,6 @@ install(TARGETS
 # Install additional directories.
 install(DIRECTORY
   launch
-  resource
   worlds
   DESTINATION share/${PROJECT_NAME}/
 )
