@@ -2,13 +2,16 @@ import os
 import launch
 from launch import LaunchDescription
 from ament_index_python.packages import get_package_share_directory
+from launch_ros.parameter_descriptions import ParameterValue
+from launch.substitutions import Command
 from webots_ros2_driver.webots_launcher import WebotsLauncher
 from webots_ros2_driver.webots_controller import WebotsController
 
 def generate_launch_description():
+
     package_dir = get_package_share_directory('sentry_sim')
-    description_dir = get_package_share_directory('sentry_description')
-    robot_description_path = os.path.join(package_dir, 'urdf', 'sentry.urdf')
+    package_share = get_package_share_directory('sentry_description');
+    sentry_urdf = os.path.join(package_share, 'urdf/sentry.urdf.xacro')
 
     webots = WebotsLauncher(
         world=os.path.join(package_dir, 'worlds', 'my_world.wbt')
@@ -17,7 +20,9 @@ def generate_launch_description():
     my_robot_driver = WebotsController(
         robot_name='sentry',
         parameters=[
-            {'robot_description': robot_description_path},
+            {
+                'robot_description': sentry_urdf,
+            },
         ]
     )
 

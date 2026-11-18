@@ -29,7 +29,7 @@ Solid {
       scale 1 1 1   # Use 1 1 1 if exported in meters instead of mm
       children [
         CadShape {
-          url [ "2026_ARC_3v3.obj" ]
+          url [ "ARCC_S2_3v3_Battlefield.obj" ]
         }
       ]
     }
@@ -39,7 +39,7 @@ Solid {
     scale 1 1 1     # Must match visual scale
     children [
       Mesh {
-        url [ "2026_ARC_3v3.obj" ]
+        url [ "ARCC_S2_3v3_Battlefield.obj" ]
       }
     ]
   }

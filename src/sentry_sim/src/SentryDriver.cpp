@@ -2,6 +2,7 @@
 #include "geometry_msgs/msg/twist.hpp"
 
 #include <cmath>
+#include <cassert>
 #include <rclcpp/qos.hpp>
 #include <webots/motor.h>
 #include <webots/robot.h>
@@ -14,10 +15,11 @@ void SentryDriver::init(
     webots_ros2_driver::WebotsNode *node,
     std::unordered_map<std::string, std::string> &parameters) {
 
-  wheel_fl = wb_robot_get_device("wheel0");
-  wheel_bl = wb_robot_get_device("wheel1");
-  wheel_br = wb_robot_get_device("wheel2");
-  wheel_fr = wb_robot_get_device("wheel3");
+  wheel_fl = wb_robot_get_device("front_left_wheel_joint");
+  printf("%u", wheel_fl);
+  wheel_bl = wb_robot_get_device("rear_left_wheel_joint");
+  wheel_br = wb_robot_get_device("rear_right_wheel_joint");
+  wheel_fr = wb_robot_get_device("front_right_wheel_joint");
 
   const auto setup = [](WbDeviceTag wheel) -> void {
       wb_motor_set_position(wheel, INFINITY);
