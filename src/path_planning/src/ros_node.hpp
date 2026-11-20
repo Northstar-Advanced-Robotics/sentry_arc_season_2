@@ -168,13 +168,8 @@ public:
         lastGridPublishTime = currentTime;
     }
 
-    void update()
-    {
-        hasRobotPos = true;
-        if (!hasRobotPos)
-        {
-            return;
-        }
+    void update() {
+        if (!hasRobotPos) { return; }
 
         rclcpp::Time currentTime = this->now();
         thetaStar->updateDynamicObstacles();
@@ -187,8 +182,7 @@ public:
         currentWorldGoalVelocity = calculateVelocityToNextNode();
         publishVelocityData(currentWorldGoalPos, currentTime);
         
-        if ((currentTime - lastGridPublishTime).seconds() > GRID_PUB_WAIT)
-        {
+        if ((currentTime - lastGridPublishTime).seconds() > GRID_PUB_WAIT) {
             this->publishGrid(currentTime);
         }
     }
@@ -279,19 +273,13 @@ private:
     PathOutline* currentPathOutline = nullptr;
     AutoDriveState currentState = AutoDriveState::GoingToBase;
 
+    // GAME STATE INFORMATION
     bool leftTeam = true;
+    bool donutScored = false;
 
     const vector2<float> LEFT_ALL_ZONE = vector2<float>(-5.3f, 0.0f);
     const vector2<float> RIGHT_ALL_ZONE = vector2<float>(5.3f, 0.0f);
 
-    int currentDemoIndex = 0;
-    const vector2<float> DEMO_POINTS[4] = {
-       vector2<float>(-0.45f, -3.0f),
-       vector2<float>(-0.45f, 0.0f),
-       vector2<float>(3.0f, -3.0f),
-       vector2<float>(3.0f, -3.0f),
-    };
-    
     static constexpr float MID_SIZE = 0.6f;
     PathOutline* MID_CYCLE_PATH = new PathOutline(
         {vector2<float>(-MID_SIZE, MID_SIZE),
