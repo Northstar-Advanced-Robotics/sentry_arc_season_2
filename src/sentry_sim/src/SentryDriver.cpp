@@ -1,22 +1,21 @@
 #include "sentry_sim/SentryDriver.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 
+#include <algorithm>
 #include <cmath>
-#include <cassert>
 #include <rclcpp/qos.hpp>
 #include <webots/motor.h>
 #include <webots/robot.h>
 
-#define HALF_DISTANCE_BETWEEN_WHEELS 0.045
-#define WHEEL_RADIUS 0.025
-#define DIST_TO_CENTER 0.2897
+// Must match sentry_description/urdf/sentry.urdf.xacro and worlds/my_world.wbt
+#define WHEEL_RADIUS 0.075   // m, omni wheel radius
+#define DIST_TO_CENTER 0.315 // m, wheel contact point to chassis center (mount_radius)
 
 void SentryDriver::init(
     webots_ros2_driver::WebotsNode *node,
     std::unordered_map<std::string, std::string> &parameters) {
 
   wheel_fl = wb_robot_get_device("front_left_wheel_joint");
-  printf("%u", wheel_fl);
   wheel_bl = wb_robot_get_device("rear_left_wheel_joint");
   wheel_br = wb_robot_get_device("rear_right_wheel_joint");
   wheel_fr = wb_robot_get_device("front_right_wheel_joint");
@@ -52,11 +51,25 @@ void SentryDriver::driveBasedOnHeading(float forward, float sideways, float rota
 
     float rotationalComponent = -rotational * DIST_TO_CENTER;
 
-    // these are in meters/second, convert to motor velocity ??
-    float motor_lf_velocity = (vx_local - vy_local) / M_SQRT2 + rotationalComponent;
-    float motor_rf_velocity = (-vx_local - vy_local) / M_SQRT2 + rotationalComponent;
-    float motor_rb_velocity = (-vx_local + vy_local) / M_SQRT2 + rotationalComponent;
-    float motor_lb_velocity = (vx_local + vy_local) / M_SQRT2 + rotationalComponent;
+    // Rim speeds (m/s) -> wheel angular velocities (rad/s)
+    float motor_lf_velocity = ((vx_local - vy_local) / M_SQRT2 + rotationalComponent) / WHEEL_RADIUS;
+    float motor_rf_velocity = ((-vx_local - vy_local) / M_SQRT2 + rotationalComponent) / WHEEL_RADIUS;
+    float motor_rb_velocity = ((-vx_local + vy_local) / M_SQRT2 + rotationalComponent) / WHEEL_RADIUS;
+    float motor_lb_velocity = ((vx_local + vy_local) / M_SQRT2 + rotationalComponent) / WHEEL_RADIUS;
+
+    // Saturation scaling: if any wheel exceeds the motor limit, scale all four
+    // by the same factor so the commanded direction is preserved (Webots would
+    // otherwise clamp each wheel independently and bend the trajectory).
+    const float max_wheel = wb_motor_get_max_velocity(wheel_fl);
+    const float largest = std::max({std::fabs(motor_lf_velocity), std::fabs(motor_rf_velocity),
+                                    std::fabs(motor_rb_velocity), std::fabs(motor_lb_velocity)});
+    if (largest > max_wheel) {
+        const float scale = max_wheel / largest;
+        motor_lf_velocity *= scale;
+        motor_rf_velocity *= scale;
+        motor_rb_velocity *= scale;
+        motor_lb_velocity *= scale;
+    }
 
     wb_motor_set_velocity(wheel_fl, motor_lf_velocity);
     wb_motor_set_velocity(wheel_fr, motor_rf_velocity);

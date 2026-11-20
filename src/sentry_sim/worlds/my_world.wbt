@@ -1,13 +1,19 @@
-#VRML_SIM R2022b utf8
+#VRML_SIM R2025a utf8
 
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "../protos/OmniWheel.proto"
 
 WorldInfo {
+  # Small timestep keeps the light passive omni-wheel rollers stable.
+  basicTimeStep 8
   contactProperties [
     ContactProperties {
       material1 "omni_wheel"
-      coulombFriction [ 2, 0 ]
+      material2 "field"
+      # Plain symmetric friction: the passive rollers provide the free direction.
+      # (Asymmetric friction can't be used here: the field is a Mesh.)
+      coulombFriction [ 1 ]
       bounce 0
     }
   ]
@@ -35,6 +41,7 @@ Solid {
     }
   ]
   name "competition_field"
+  contactMaterial "field"
   boundingObject Transform {
     scale 1 1 1     # Must match visual scale
     children [
@@ -45,138 +52,46 @@ Solid {
   }
 }
 Robot {
-  translation 0 0 0.175
+  # Spawn in open floor; the origin is inside the 1.4 m centre wall (x = 0).
+  translation 2.0 0.33 0.175
   children [
-    # Front-Left Wheel (+45 deg)
-    HingeJoint {
-      jointParameters HingeJointParameters {
-        axis 0.7071068 0.7071068 0
-        anchor 0.22273864 0.22273864 -0.10
-      }
-      device [
-        RotationalMotor {
-          name "front_left_wheel_joint"
-        }
-        PositionSensor {
-          name "front_left_wheel_joint_sensor"
-        }
-      ]
-      endPoint Solid {
-        translation 0.22273864 0.22273864 -0.10
-        rotation 0 0 1 -0.7853982
-        contactMaterial "omni_wheel"
-        children [
-          DEF OMNI_WHEEL Transform {
-            rotation 1 0 0 1.5707963
-            children [
-              Shape {
-                appearance PBRAppearance {
-                  baseColor 0.1 0.1 0.1
-                  roughness 0.8
-                  metalness 0.1
-                }
-                geometry Cylinder {
-                  height 0.04
-                  radius 0.075
-                }
-              }
-            ]
-          }
-        ]
-        name "front_left_wheel_link"
-        boundingObject USE OMNI_WHEEL
-        physics Physics {
-          density -1
-          mass 0.5
-        }
-      }
+    # X-drive: wheels at 45 deg on a 0.315 m radius, axles pointing radially outward.
+    # Values must match sentry_description/urdf/sentry.urdf.xacro and SentryDriver.cpp.
+    OmniWheel {
+      axis 0.7071068 0.7071068 0
+      anchor 0.22273864 0.22273864 -0.10
+      endTranslation 0.22273864 0.22273864 -0.10
+      endRotation 0 0 1 -0.7853982
+      motorName "front_left_wheel_joint"
+      sensorName "front_left_wheel_joint_sensor"
+      name "front_left_wheel_link"
     }
-    # Front-Right Wheel (-45 deg)
-    HingeJoint {
-      jointParameters HingeJointParameters {
-        axis 0.7071068 -0.7071068 0
-        anchor 0.22273864 -0.22273864 -0.10
-      }
-      device [
-        RotationalMotor {
-          name "front_right_wheel_joint"
-        }
-        PositionSensor {
-          name "front_right_wheel_joint_sensor"
-        }
-      ]
-      endPoint Solid {
-        translation 0.22273864 -0.22273864 -0.10
-        rotation 0 0 1 -2.3561945
-        contactMaterial "omni_wheel"
-        children [
-          USE OMNI_WHEEL
-        ]
-        name "front_right_wheel_link"
-        boundingObject USE OMNI_WHEEL
-        physics Physics {
-          density -1
-          mass 0.5
-        }
-      }
+    OmniWheel {
+      axis 0.7071068 -0.7071068 0
+      anchor 0.22273864 -0.22273864 -0.10
+      endTranslation 0.22273864 -0.22273864 -0.10
+      endRotation 0 0 1 -2.3561945
+      motorName "front_right_wheel_joint"
+      sensorName "front_right_wheel_joint_sensor"
+      name "front_right_wheel_link"
     }
-    # Rear-Left Wheel (+135 deg)
-    HingeJoint {
-      jointParameters HingeJointParameters {
-        axis -0.7071068 0.7071068 0
-        anchor -0.22273864 0.22273864 -0.10
-      }
-      device [
-        RotationalMotor {
-          name "rear_left_wheel_joint"
-        }
-        PositionSensor {
-          name "rear_left_wheel_joint_sensor"
-        }
-      ]
-      endPoint Solid {
-        translation -0.22273864 0.22273864 -0.10
-        rotation 0 0 1 0.7853982
-        contactMaterial "omni_wheel"
-        children [
-          USE OMNI_WHEEL
-        ]
-        name "rear_left_wheel_link"
-        boundingObject USE OMNI_WHEEL
-        physics Physics {
-          density -1
-          mass 0.5
-        }
-      }
+    OmniWheel {
+      axis -0.7071068 0.7071068 0
+      anchor -0.22273864 0.22273864 -0.10
+      endTranslation -0.22273864 0.22273864 -0.10
+      endRotation 0 0 1 0.7853982
+      motorName "rear_left_wheel_joint"
+      sensorName "rear_left_wheel_joint_sensor"
+      name "rear_left_wheel_link"
     }
-    # Rear-Right Wheel (-135 deg)
-    HingeJoint {
-      jointParameters HingeJointParameters {
-        axis -0.7071068 -0.7071068 0
-        anchor -0.22273864 -0.22273864 -0.10
-      }
-      device [
-        RotationalMotor {
-          name "rear_right_wheel_joint"
-        }
-        PositionSensor {
-          name "rear_right_wheel_joint_sensor"
-        }
-      ]
-      endPoint Solid {
-        translation -0.22273864 -0.22273864 -0.10
-        rotation 0 0 1 2.3561945
-        contactMaterial "omni_wheel"
-        children [
-          USE OMNI_WHEEL
-        ]
-        name "rear_right_wheel_link"
-        boundingObject USE OMNI_WHEEL
-        physics Physics {
-          density -1
-          mass 0.5
-        }
-      }
+    OmniWheel {
+      axis -0.7071068 -0.7071068 0
+      anchor -0.22273864 -0.22273864 -0.10
+      endTranslation -0.22273864 -0.22273864 -0.10
+      endRotation 0 0 1 2.3561945
+      motorName "rear_right_wheel_joint"
+      sensorName "rear_right_wheel_joint_sensor"
+      name "rear_right_wheel_link"
     }
     # Chassis (base_link)
     Shape {

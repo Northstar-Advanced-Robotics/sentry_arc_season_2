@@ -1,0 +1,98 @@
+#VRML_SIM R2025a utf8
+# template language: javascript
+# Driven omni wheel: a motorised hub ringed by free-spinning (passive) rollers.
+# Each roller spins about the rim tangent, so the wheel grips along its rolling
+# direction but slides freely along its axle. Works on any ground geometry
+# (including Mesh), unlike asymmetric-friction tricks.
+#
+# Frame convention (matches the old world file): the endpoint Solid's local +Y
+# is the axle, so `endRotation` should rotate +Y onto `axis`.
+
+PROTO OmniWheel [
+  field SFVec3f    axis            0 1 0
+  field SFVec3f    anchor          0 0 0
+  field SFVec3f    endTranslation  0 0 0
+  field SFRotation endRotation     0 0 1 0
+  field SFString   motorName       "wheel_joint"
+  field SFString   sensorName      "wheel_joint_sensor"
+  field SFString   name            "wheel_link"
+  field SFFloat    maxVelocity     40
+  field SFFloat    maxTorque       20
+  field SFFloat    radius          0.075   # outer radius (roller tops)
+  field SFFloat    width           0.04
+  field SFFloat    rollerRadius    0.022
+  field SFInt32    rollerCount     16
+  field SFFloat    hubMass         0.4
+  field SFFloat    rollerMass      0.03
+  field SFString   contactMaterial "omni_wheel"
+]
+{
+  %<
+    const n = fields.rollerCount.value;
+    const rr = fields.rollerRadius.value;
+    const rc = fields.radius.value - rr;          // roller centre distance from hub axis
+    const hubR = Math.max(rc - rr * 0.6, 0.01);   // hub stays inside the roller ring
+  >%
+  HingeJoint {
+    jointParameters HingeJointParameters {
+      axis IS axis
+      anchor IS anchor
+    }
+    device [
+      RotationalMotor {
+        name IS motorName
+        maxVelocity IS maxVelocity
+        maxTorque IS maxTorque
+      }
+      PositionSensor {
+        name IS sensorName
+      }
+    ]
+    endPoint Solid {
+      translation IS endTranslation
+      rotation IS endRotation
+      name IS name
+      children [
+        Pose {
+          rotation 1 0 0 1.5707963
+          children [
+            Shape {
+              appearance PBRAppearance { baseColor 0.6 0.6 0.65 roughness 0.4 metalness 0.6 }
+              geometry Cylinder { height %<= fields.width.value * 0.6 >% radius %<= hubR >% }
+            }
+          ]
+        }
+        %< for (let i = 0; i < n; ++i) {
+             const a = 2 * Math.PI * i / n;
+             const px = rc * Math.cos(a), pz = rc * Math.sin(a);
+             const ax = -Math.sin(a), az = Math.cos(a);   // tangent to the rim
+        >%
+        HingeJoint {
+          jointParameters HingeJointParameters {
+            axis %<= ax >% 0 %<= az >%
+            anchor %<= px >% 0 %<= pz >%
+          }
+          endPoint Solid {
+            translation %<= px >% 0 %<= pz >%
+            name "roller_%<= i >%"
+            contactMaterial IS contactMaterial
+            children [
+              DEF ROLLER Shape {
+                appearance PBRAppearance { baseColor 0.08 0.08 0.08 roughness 0.9 metalness 0 }
+                geometry Sphere { radius %<= rr >% subdivision 2 }
+              }
+            ]
+            boundingObject Sphere { radius %<= rr >% }
+            physics Physics { density -1 mass IS rollerMass }
+          }
+        }
+        %< } >%
+      ]
+      boundingObject Pose {
+        rotation 1 0 0 1.5707963
+        children [ Cylinder { height %<= fields.width.value * 0.6 >% radius %<= hubR >% } ]
+      }
+      physics Physics { density -1 mass IS hubMass }
+    }
+  }
+}

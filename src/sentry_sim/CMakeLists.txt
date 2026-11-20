@@ -43,6 +43,7 @@ install(TARGETS
 install(DIRECTORY
   launch
   worlds
+  protos
   DESTINATION share/${PROJECT_NAME}/
 )
 ament_export_include_directories(
