@@ -105,6 +105,70 @@ Robot {
         radius 0.2897
       }
     }
+# Elevated LiDAR Platform (chassis top is at z = 0.15)
+    Solid {
+      translation 0 0 0.225
+      children [
+        # Support post (15 cm tall)
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0.15 0.15 0.15
+            roughness 0.6
+            metalness 0.7
+          }
+          geometry Cylinder {
+            height 0.15
+            radius 0.025
+          }
+        }
+        # Mounting plate at top of post (z = 0.30 in robot frame)
+        Transform {
+          translation 0 0 0.075
+          children [
+            Shape {
+              appearance PBRAppearance {
+                baseColor 0.2 0.2 0.22
+                roughness 0.5
+                metalness 0.6
+              }
+              geometry Box {
+                size 0.08 0.08 0.01
+              }
+            }
+          ]
+        }
+      ]
+      name "lidar_platform"
+    }
+
+    # Livox Mid-360 Equivalent (mounted at z = 0.335, pitched 45 deg up)
+    Lidar {
+      translation 0 0 0.335
+      rotation 0 1 0 -0.7853982
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0.1 0.1 0.12
+            roughness 0.4
+            metalness 0.5
+          }
+          geometry Cylinder {
+            height 0.06
+            radius 0.0325
+          }
+        }
+      ]
+      name "livox_mid360"
+      horizontalResolution 360
+      fieldOfView 6.2831853
+      verticalFieldOfView 1.029744
+      numberOfLayers 32
+      near 0.1
+      minRange 0.1
+      maxRange 40.0
+      noise 0.02
+      defaultFrequency 10
+    }
   ]
   boundingObject USE BODY
   physics Physics {

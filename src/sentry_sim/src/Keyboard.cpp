@@ -1,10 +1,3 @@
-#include "geometry_msgs/msg/twist.hpp"
-#include <SDL_error.h>
-#include <SDL_events.h>
-#include <SDL_keyboard.h>
-#include <SDL_scancode.h>
-#include <SDL_timer.h>
-#include <SDL_video.h>
 #include <SDL2/SDL.h>
 #include <rclcpp/rclcpp.hpp>
 
@@ -42,7 +35,6 @@ private:
             printf("Renderer error: %s\n", SDL_GetError());
         }
         
-        // Inside your loop (or at least once before the loop):
         SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
         SDL_RenderClear(renderer);
         SDL_RenderPresent(renderer);       SDL_Event event;
@@ -57,23 +49,6 @@ private:
                     case SDL_QUIT:
                         running = false;
                     break;
-                    // case SDL_KEYDOWN:
-                    //     switch (event.key.keysym.scancode) {
-                    //         default:
-                    //         break;
-                    //         case SDL_SCANCODE_W:   
-
-                    //         break;
-                    //         case SDL_SCANCODE_A:   
-                    //         break;
-                    //         case SDL_SCANCODE_S:   
-                    //         break;
-                    //         case SDL_SCANCODE_D:   
-                    //         break;
-                    //         case SDL_SCANCODE_B:
-                    //         break;
-                    //     }
-                    // break;
                 }
 
             }
@@ -84,7 +59,7 @@ private:
                 cmd_vel.linear.x += 1;
             }
             if (keys[SDL_SCANCODE_S]) {
-                cmd_vel.linear.x -=1;
+                cmd_vel.linear.x -= 1;
             }
             if (keys[SDL_SCANCODE_A]) {
                 cmd_vel.linear.y += 1;
@@ -94,8 +69,10 @@ private:
             }
 
             const auto mag = sqrt(cmd_vel.linear.x * cmd_vel.linear.x + cmd_vel.linear.y * cmd_vel.linear.y);
-            cmd_vel.linear.x /= mag;
-            cmd_vel.linear.y /= mag;
+            if(mag != 0) {                
+                cmd_vel.linear.x /= mag;
+                cmd_vel.linear.y /= mag;
+            }
         
             node->cmd_vel->publish(cmd_vel);
 
