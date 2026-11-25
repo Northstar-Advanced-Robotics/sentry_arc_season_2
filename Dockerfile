@@ -58,6 +58,7 @@ RUN apt-get update && \
 COPY --parents src/**/package.xml /ws/
 
 RUN apt-get update && \ 
+    apt-get install -y libsdl2-dev && \
     rosdep install --from-paths /ws --ignore-src -r -y && \
     rm -rf /var/lib/apt/lists/*
 

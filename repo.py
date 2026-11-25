@@ -26,6 +26,10 @@ colcon_args: list[str] = [
     "ninja",
 ]
 
+def sim(args) -> None:
+    compile(args)
+    runcmd(["bash", "-c", "source install/setup.bash && ros2 launch sentry_sim robot_launch.py"])
+
 def in_container() -> bool:
     return not os.getenv("IN_CONTAINER") is None
 
@@ -95,6 +99,10 @@ def main() -> None:
     compile_parser = subparsers.add_parser("compile", help="Compile the ROS 2 workspace")
     compile_parser.add_argument("--package", type=str, default=None, help="Specify a package to build")
     compile_parser.add_argument("--build-type", type=str, default="Debug", choices=["Debug", "Release", "RelWithDebInfo"], help="Specify colcon build type")
+
+    sim_parser = subparsers.add_parser("sim", help="Run the sim")
+    sim_parser.add_argument("--package", type=str, default=None, help="Specify a package to build")
+    sim_parser.add_argument("--build-type", type=str, default="Debug", choices=["Debug", "Release", "RelWithDebInfo"], help="Specify colcon build type")
 
     args = parser.parse_args()
     globals()[args.command](args)

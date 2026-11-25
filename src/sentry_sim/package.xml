@@ -15,6 +15,9 @@
   <depend>python3-pil</depend>
   <depend>geometry_msgs</depend>
   <depend>pluginlib</depend>
+  <depend>teleop_twist_keyboard</depend>
+  <depend>xacro</depend>
+  <depend>SDL3</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
